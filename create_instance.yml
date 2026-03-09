@@ -1,0 +1,34 @@
+---
+- name: Register an instance as an Execution Node
+  # INPUT as extraa vars:
+  # - instance_group_name as the instance group name
+  # - instance_name as the instance name
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create the Instance in de Controller
+      ansible.controller.instance:
+        hostname: "{{ instance_name }}"
+        node_type: "execution"
+        listener_port: 27199
+        peers_from_control_nodes: true
+        node_state: "installed"
+        enabled: true
+      register: instance_result
+
+    - name: Show result of creation
+      ansible.builtin.debug:
+        var: instance_result
+
+    - name: Add the Instance to the Instance Group
+      ansible.controller.instance_group:
+        name: "{{ instance_group_name }}"
+        instances:
+          - "{{ instance_name }}"
+        state: present
+
+    - name: Show result of addition
+      ansible.builtin.debug:
+        msg: "Instance {{ instance_name }} created in {{ instance_group_name }}"
