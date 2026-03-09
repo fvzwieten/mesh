@@ -1,0 +1,24 @@
+---
+- name: Deploy AAP Instance Group
+  # INPUT as extra vars:
+  # - instance_group_name as the instance group name
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create Instance Group
+      ansible.controller.instance_group:
+        name: "{{ instance_group_name }}"
+        state: present
+        # Optional: set up how many tasks are allowed to run
+        max_concurrent_jobs: 20
+        max_forks: 200
+        # Policy for automatic addtion of instances (0 = manual)
+        policy_instance_percentage: 0
+        policy_instance_minimum: 0
+      register: ig_result
+
+    - name: Show result
+      ansible.builtin.debug:
+        var: ig_result
