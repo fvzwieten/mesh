@@ -1,0 +1,134 @@
+---
+- name: PLAY 1 - Prepare and Download Bundle
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Add host to inventory for the next play
+      ansible.builtin.add_host:
+        name: "{{ instance_name }}"
+        groups: dynamic_mesh_nodes
+
+
+- name: PLAY 2 - Install Mesh Instance
+  hosts: "{{ instance_name }}"
+  become: true
+  gather_facts: true
+  vars:
+    controller_api: "{{ lookup('env', 'CONTROLLER_HOST') }}/api/controller/v2"
+    auth_header: "Bearer {{ lookup('env', 'CONTROLLER_OAUTH_TOKEN') }}"
+    bundle_dir: "/tmp/{{ instance_name }}_bundle"
+    bundle_tar: "{{ bundle_dir }}.tar.gz"
+
+  tasks:
+    - name: Ensure subscription and repo are active
+      ansible.builtin.rhsm_repository:
+        name: ansible-automation-platform-2.6-for-rhel-9-x86_64-rpms
+        state: enabled
+
+    - name: Upgrade all packages to the latest version
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: yes
+
+    - name: Install ansible-core
+      ansible.builtin.dnf:
+        name: ansible-core
+        state: present
+
+    - name: Ensure the  Python firewalld library is present
+      ansible.builtin.dnf:
+        name: python3-firewall
+        state: present
+
+    - name: Get the Instance ID from the hostname
+      ansible.builtin.uri:
+        url: "{{ controller_api }}/instances/?hostname={{ instance_name }}"
+        method: GET
+        headers:
+          Authorization: "{{ auth_header }}"
+        status_code: 200
+        validate_certs: false
+      register: instance_lookup
+
+    - name: Set Instance ID fact
+      ansible.builtin.set_fact:
+        instance_id: "{{ instance_lookup.json.results[0].id }}"
+      failed_when: instance_lookup.json.count == 0
+
+    - name: Download the bundle using the ID
+      ansible.builtin.uri:
+        # Note the change: using instance_id instead of instance_name
+        url: "{{ controller_api }}/instances/{{ instance_id }}/install_bundle/"
+        method: GET
+        headers:
+          Authorization: "{{ auth_header }}"
+        dest: "{{ bundle_tar }}"
+        status_code: 200
+        validate_certs: false
+
+    - name: Open Receptor port in firewalld
+      ansible.posix.firewalld:
+        port: 27199/tcp
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Install the mesh using the bundle      
+      block:
+        - name: Create extraction directory
+          ansible.builtin.file:
+            path: "{{ bundle_dir }}"
+            state: directory
+            mode: '0700'
+
+        - name: Unarchive the bundle
+          ansible.builtin.unarchive:
+            src: "{{ bundle_tar }}"
+            dest: "{{ bundle_dir }}"
+            remote_src: yes
+            extra_opts: ['--strip-components=1']
+
+        - name: Install Ansible requirements from the bundle
+          ansible.builtin.command:
+            cmd: "ansible-galaxy install -r requirements.yml"
+            chdir: "{{ bundle_dir }}"
+          register: install_result
+
+        - name: Show result of creation
+          ansible.builtin.debug:
+            var: install_result
+
+        - name: Install the Mesh Node using the bundle playbook
+          ansible.builtin.command:
+            # cmd: "ansible-playbook -i inventory.yml install_receptor.yml"
+            #cmd: "ansible-playbook -i localhost, install_receptor.yml -c local -e 'ansible_python_interpreter=/usr/bin/python3'"
+            cmd: >
+              ansible-playbook -i localhost, install_receptor.yml -c local 
+              -e "ansible_python_interpreter=/usr/bin/python3"
+              -e "ansible_host={{ instance_name }}"
+              -e "receptor_host_identifier={{ instance_name }}"
+              -e "routable_hostname={{ instance_name }}"
+            chdir: "{{ bundle_dir }}"
+            creates: /etc/receptor/receptor.conf
+          register: install_result
+
+        - name: Show result of creation
+          ansible.builtin.debug:
+            var: install_result
+
+      #always:
+      #  - name: Cleanup sensitive bundle files
+          #ansible.builtin.file:
+          #  path: "{{ item }}"
+          #  state: absent
+          #loop:
+          #  - "{{ bundle_tar }}"
+          #  - "{{ bundle_dir }}"
+
+    - name: Verify Receptor Service is running
+      ansible.builtin.systemd:
+        name: receptor
+        state: started
+        enabled: yes
