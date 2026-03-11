@@ -6,6 +6,11 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  vars:
+    controller_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
+    controller_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
+    controller_hostname: "{{ lookup('env', 'CONTROLLER_HOSTNAME') }}"
+    controller_validate_certs: "{{ lookup('env', 'CONTROLLER_VERIFY_SSL') }}"
 
   tasks:
     - name: Create the Instance in de Controller
@@ -15,6 +20,7 @@
         listener_port: 27199
         peers_from_control_nodes: true
         node_state: "installed"
+        validate_certs: true
         enabled: true
       register: instance_result
 

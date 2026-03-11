@@ -1,5 +1,6 @@
 # /bin/bash
 # for running outside of AAP
-export CONTROLLER_HOST=https://<aap fqdn>
-export CONTROLLER_OAUTH_TOKEN=<api token>
+export CONTROLLER_HOSTNAME=<aap url>
+export CONTROLLER_USERNAME=<username>
+export CONTROLLER_PASSWORD=<password>
 export CONTROLLER_VERIFY_SSL=false

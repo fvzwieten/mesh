@@ -9,14 +9,17 @@
         name: "{{ instance_name }}"
         groups: dynamic_mesh_nodes
 
-
 - name: PLAY 2 - Install Mesh Instance
   hosts: "{{ instance_name }}"
   become: true
   gather_facts: true
   vars:
-    controller_api: "{{ lookup('env', 'CONTROLLER_HOST') }}/api/controller/v2"
-    auth_header: "Bearer {{ lookup('env', 'CONTROLLER_OAUTH_TOKEN') }}"
+    controller_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
+    controller_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
+    controller_hostname: "{{ lookup('env', 'CONTROLLER_HOSTNAME') }}"
+    controller_validate_certs: "{{ lookup('env', 'CONTROLLER_VERIFY_SSL') }}"
+
+    controller_api: "https://{{ controller_hostname }}/api/controller/v2"
     bundle_dir: "/tmp/{{ instance_name }}_bundle"
     bundle_tar: "{{ bundle_dir }}.tar.gz"
 
@@ -37,36 +40,26 @@
         name: ansible-core
         state: present
 
-    - name: Ensure the  Python firewalld library is present
+    - name: Ensure the Python firewalld library is present
       ansible.builtin.dnf:
         name: python3-firewall
         state: present
 
-    - name: Get the Instance ID from the hostname
-      ansible.builtin.uri:
-        url: "{{ controller_api }}/instances/?hostname={{ instance_name }}"
-        method: GET
-        headers:
-          Authorization: "{{ auth_header }}"
-        status_code: 200
-        validate_certs: false
-      register: instance_lookup
+    - name: Get Instance ID using lookup
+      set_fact:
+        instance_id: "{{ lookup('ansible.controller.controller_api', 'instances', query_params={'hostname': instance_name})['id'] }}"
 
-    - name: Set Instance ID fact
-      ansible.builtin.set_fact:
-        instance_id: "{{ instance_lookup.json.results[0].id }}"
-      failed_when: instance_lookup.json.count == 0
-
-    - name: Download the bundle using the ID
+    - name: Download Instance Install Bundle
       ansible.builtin.uri:
-        # Note the change: using instance_id instead of instance_name
         url: "{{ controller_api }}/instances/{{ instance_id }}/install_bundle/"
+        url_username: "{{ controller_username }}"
+        url_password: "{{ controller_password }}"
+        validate_certs: "{{ controller_validate_certs }}"
         method: GET
-        headers:
-          Authorization: "{{ auth_header }}"
+        force_basic_auth: yes
         dest: "{{ bundle_tar }}"
         status_code: 200
-        validate_certs: false
+      register: bundle_download
 
     - name: Open Receptor port in firewalld
       ansible.posix.firewalld:
@@ -102,8 +95,6 @@
 
         - name: Install the Mesh Node using the bundle playbook
           ansible.builtin.command:
-            # cmd: "ansible-playbook -i inventory.yml install_receptor.yml"
-            #cmd: "ansible-playbook -i localhost, install_receptor.yml -c local -e 'ansible_python_interpreter=/usr/bin/python3'"
             cmd: >
               ansible-playbook -i localhost, install_receptor.yml -c local 
               -e "ansible_python_interpreter=/usr/bin/python3"
@@ -118,14 +109,14 @@
           ansible.builtin.debug:
             var: install_result
 
-      #always:
-      #  - name: Cleanup sensitive bundle files
-          #ansible.builtin.file:
-          #  path: "{{ item }}"
-          #  state: absent
-          #loop:
-          #  - "{{ bundle_tar }}"
-          #  - "{{ bundle_dir }}"
+      always:
+        - name: Cleanup sensitive bundle files
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - "{{ bundle_tar }}"
+            - "{{ bundle_dir }}"
 
     - name: Verify Receptor Service is running
       ansible.builtin.systemd:

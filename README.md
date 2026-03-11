@@ -5,9 +5,7 @@ This repo contains playbooks for automatic deployment of an execution node. It i
 
 The playbooks use extra_vars for specifying instance_group_name and instance_name making it suitable to use in a workflow.
 
-The playbooks assume the env var CONTROLLER_HOST is defined
-
-A workflow could be:
+An AAP workflow could be:
 [create_instance_group] -> [create_instance] -> [create_vm_with_rhel9] -> [sync inventory] -> [install_instance]
 
 The most important aspects are:
@@ -16,5 +14,10 @@ The most important aspects are:
 
 Used collections:
 - ansible.controller
-- ansible.receptor
-- community.general
+- ansible.posix
+
+See https://console.redhat.com/ansible/automation-hub/collections/published/ansible/controller/documentation
+
+Usage:
+When used outside of AAP, specify the correct values in app_creds.sh
+When using inside of AAP, provide a controller credential
