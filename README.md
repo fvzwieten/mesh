@@ -11,5 +11,10 @@ A workflow could be:
 [create_instance_group] -> [create_instance] -> [create_vm_with_rhel9] -> [sync inventory] -> [install_instance]
 
 The most important aspects are:
-create_instance.yml -> use the module params to define push/pull, hop/exec node, peers, etc
-install_instance.yml -> uses an api call to download the install_bundle to install the receptor
+- create_instance.yml -> use the module params to define push/pull, hop/exec node, peers, etc
+- install_instance.yml -> uses an api call to download the install_bundle to install the receptor
+
+Used collections:
+- ansible.controller
+- ansible.receptor
+- community.general
