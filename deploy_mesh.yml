@@ -85,7 +85,7 @@
 
     - name: Get Instance ID using lookup
       set_fact:
-        instance_id: "{{ (lookup('ansible.controller.controller_api', 'instances', query_params={'hostname': inventory_hostname}) | first).id }}"
+        instance_id: "{{ lookup('ansible.controller.controller_api', 'instances', query_params={'hostname': inventory_hostname})['id'] }}"
 
     - name: Download Instance Install Bundle
       ansible.builtin.uri:
