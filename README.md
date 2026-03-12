@@ -25,10 +25,10 @@ See https://console.redhat.com/ansible/automation-hub/collections/published/ansi
 
 Notes:
 - Using this method will create a hard dependency on ssh access to the mesh nodes from the controller (like with the container based installation). If this is a problem and manual installation is still not desired, this playbook can also be run from some installation node other than the controller
-- If this is used for bootstrapping a full AAP installation this means that the controller must initially be a _hybrid_ node, because otherwise it can not run the mesh deployment from it (chicken and egg problem). After the mesh is deployed, the mesh role can be moved to a _control_ node.
+- If this is used for bootstrapping a full AAP installation this means that the controller must initially be a _hybrid_ node, because otherwise it can not run the mesh deployment from it (chicken and egg problem). After the mesh is deployed, the mesh role can be moved to a _control_ node, but maybe it's good to keep it hybrid for other mesh related jobs.
 - the use of the command module to run the ansible-playbook on the mesh node is on purpose to make it as compatible with future versions as possible
 
 Notes on lifecycling:
-- Upgrading mesh nodes is basically running _sudo dnf update ansible-runner receptor -y_ and then restart the receptor service.
+- Upgrading mesh nodes is basically running _sudo dnf update ansible-runner receptor -y_ and then restart the receptor service. This can easily be done automatically using a playbook, although you need to consider carefully where such a job should be able to run (most likely on a hybrid node again)
 - Migrating to, for example, a new OS, would be a pattern where you add a new instance to the group and then removing the deprected one.
 - Changing topology in-place in an automatic fashion should theoratically be possible, but one could/should consider the effort versus the one-time need.
