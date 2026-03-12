@@ -15,7 +15,7 @@
   tasks:
     - name: Create the Instance in de Controller
       ansible.controller.instance:
-        hostname: "{{ instance_name }}"
+        hostname: "{{ inventory_hostname }}"
         node_type: "execution"
         listener_port: 27199
         peers_from_control_nodes: true
@@ -33,10 +33,10 @@
       ansible.controller.instance_group:
         name: "{{ instance_group_name }}"
         instances:
-          - "{{ instance_name }}"
+          - "{{ inventory_hostname }}"
         state: present
       delegate_to: localhost
 
     - name: Show result of addition
       ansible.builtin.debug:
-        msg: "Instance {{ instance_name }} created in {{ instance_group_name }}"
+        msg: "Instance {{ inventory_hostname }} created in {{ instance_group_name }}"
