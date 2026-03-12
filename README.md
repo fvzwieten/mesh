@@ -22,3 +22,7 @@ The job template in AAP should have 2 credentials:
 - Machine credential for the machines where the mesh is deployed on
 
 See https://console.redhat.com/ansible/automation-hub/collections/published/ansible/controller/documentation
+
+Notes:
+- Using this method will create a hard dependency on ssh access to the mesh nodes from the controller (like with the container based installation). If this is a problem and manual installation is still not desired, this playbook can also be run from some installation node other than the controller
+- If this is used for bootstrapping a full AAP installation this means that the controller must initially be a _hybrid_ node, because otherwise it can not run the mesh deployment from it (chicken and egg problem). After the mesh is deployed, the mesh role can be moved to a _control_ node. 
