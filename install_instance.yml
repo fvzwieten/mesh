@@ -19,7 +19,7 @@
     controller_hostname: "{{ lookup('env', 'CONTROLLER_HOST') }}"
     controller_validate_certs: "{{ lookup('env', 'CONTROLLER_VERIFY_SSL') }}"
 
-    controller_api: "https://{{ controller_hostname }}/api/controller/v2"
+    controller_api: "{{ controller_hostname }}/api/controller/v2"
     bundle_dir: "/tmp/{{ inventory_hostname }}_bundle"
     bundle_tar: "{{ bundle_dir }}.tar.gz"
 
