@@ -14,10 +14,10 @@
   become: true
   gather_facts: true
   vars:
-    #controller_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
-    #controller_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
-    #controller_hostname: "{{ lookup('env', 'CONTROLLER_HOSTNAME') }}"
-    #controller_validate_certs: "{{ lookup('env', 'CONTROLLER_VERIFY_SSL') }}"
+    controller_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
+    controller_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
+    controller_hostname: "{{ lookup('env', 'CONTROLLER_HOST') }}"
+    controller_validate_certs: "{{ lookup('env', 'CONTROLLER_VERIFY_SSL') }}"
 
     controller_api: "https://{{ controller_hostname }}/api/controller/v2"
     bundle_dir: "/tmp/{{ inventory_hostname }}_bundle"
@@ -98,7 +98,7 @@
             cmd: >
               ansible-playbook -i localhost, install_receptor.yml -c local 
               -e "ansible_python_interpreter=/usr/bin/python3"
-              -e "ansible_host={{ inventroy_hostname }}"
+              -e "ansible_host={{ inventory_hostname }}"
               -e "receptor_host_identifier={{ inventory_hostname }}"
               -e "routable_hostname={{ inventory_hostname }}"
             chdir: "{{ bundle_dir }}"
