@@ -2,7 +2,7 @@
 - name: Deploy AAP Instance Group
   # INPUT as extra vars:
   # - instance_group_name as the instance group name
-  hosts: localhost
+  hosts: all
   connection: local
   gather_facts: false
   vars:
@@ -22,6 +22,7 @@
         # Policy for automatic addtion of instances (0 = manual)
         policy_instance_percentage: 0
         policy_instance_minimum: 0
+      delegate_to: localhost
       register: ig_result
 
     - name: Show result
