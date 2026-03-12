@@ -1,23 +1,24 @@
 # mesh
-PoC playbooks for automatic mesh deployment for operator based AAP
+MVP for automatic mesh deployment for operator based AAP
 
-This repo contains playbooks for automatic deployment of an execution node. It is meant as a proof of concept. push/pull and hop/execution nodes combinations are possible using the controller.instance module but the PoC playbooks in this example use the standard push exec node.
+This repo contains a playbook for automatic deployment of an execution node. It is meant as a proof of concept / mvp. push/pull and hop/execution nodes combinations are possible using the controller.instance module but the playbook in this example use the standard push exec node.
 
-The playbooks use extra_vars for specifying instance_group_name and instance_name making it suitable to use in a workflow.
+Also, being an MVP, its not perfect:
+- It fails when the instance is already deployed. it should be more idempotent
+- It will not install when it finds there is already an /etc/receptor/receptor.conf present on the execution node. Maybe it should cleanup and reinstall instead.
+- It enables the subscription for AAP 2.6 hard coded. This might need to be paramerized
+
+The playbook uses the inventory and inventory vars to determine how to deploy and confiure the mesh nodes. Each mesh node has an entry in the inventory. Hostvars will determine the various properties of the mesh nodes. The instance name is derived from the inventory_hostname. For the MVP an example inventory.yml is in the project and used as the inventory source.
 
 An AAP workflow could be:
-[create_instance_group] -> [create_instance] -> [create_vm_with_rhel9] -> [sync inventory] -> [install_instance]
+[create_vms_for mesh_nodes] -> [sync inventory] -> [deploy_mesh]
 
-The most important aspects are:
-- create_instance.yml -> use the module params to define push/pull, hop/exec node, peers, etc
-- install_instance.yml -> uses an api call to download the install_bundle to install the receptor
-
-Used collections:
+Used collections the EE:
 - ansible.controller
 - ansible.posix
 
-See https://console.redhat.com/ansible/automation-hub/collections/published/ansible/controller/documentation
+The job template in AAP should have 2 credentials:
+- Controller credontial
+- Machine credential for the machines where the mesh is deployed on
 
-Usage:
-When used outside of AAP, specify the correct values in app_creds.sh
-When using inside of AAP, provide a controller credential
+See https://console.redhat.com/ansible/automation-hub/collections/published/ansible/controller/documentation
