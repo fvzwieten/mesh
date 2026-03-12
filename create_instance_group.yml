@@ -3,13 +3,13 @@
   # INPUT as extra vars:
   # - instance_group_name as the instance group name
   hosts: all
-  connection: local
+  #connection: local
   gather_facts: false
-  vars:
-    controller_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
-    controller_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
-    controller_hostname: "{{ lookup('env', 'CONTROLLER_HOSTNAME') }}"
-    controller_validate_certs: "{{ lookup('env', 'CONTROLLER_VERIFY_SSL') }}"
+  #vars:
+  #  controller_username: "{{ lookup('env', 'CONTROLLER_USERNAME') }}"
+  #  controller_password: "{{ lookup('env', 'CONTROLLER_PASSWORD') }}"
+  #  controller_hostname: "{{ lookup('env', 'CONTROLLER_HOSTNAME') }}"
+  #  controller_validate_certs: "{{ lookup('env', 'CONTROLLER_VERIFY_SSL') }}"
 
   tasks:
     - name: Create Instance Group
