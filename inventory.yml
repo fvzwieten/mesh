@@ -1,5 +1,8 @@
 all:
   hosts:
-    en1.zwietz.nl:
-        instance_group_name: test
-        ansible_port: 2222
+    en11.example.com:
+        instance_group_name: group1
+    en12.example.com:
+        instance_group_name: group1
+    en21.example.com:
+        instance_group_name: group2
