@@ -25,6 +25,7 @@
         policy_instance_percentage: 0
         policy_instance_minimum: 0
       delegate_to: localhost
+      become: false
       register: ig_result
 
     - name: Show result of Instance Group creation
@@ -41,6 +42,7 @@
         validate_certs: true
         enabled: true
       delegate_to: localhost
+      become: false
       register: instance_result
 
     - name: Show result of Instance creation
@@ -53,6 +55,7 @@
         instances:
           - "{{ inventory_hostname }}"
         state: present
+      become: false
       delegate_to: localhost
 
     - name: Show result of Instance addition to Instance Group
@@ -82,7 +85,7 @@
 
     - name: Get Instance ID using lookup
       set_fact:
-        instance_id: "{{ lookup('ansible.controller.controller_api', 'instances', query_params={'hostname': inventory_hostname})['id'] }}"
+        instance_id: "{{ (lookup('ansible.controller.controller_api', 'instances', query_params={'hostname': inventory_hostname}) | first).id }}"
 
     - name: Download Instance Install Bundle
       ansible.builtin.uri:
