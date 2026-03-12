@@ -1,10 +1,5 @@
-[fred@dev mesh]$ ansible-playbook -i inventory create_instance_group.yml
-
-PLAY [Deploy AAP Instance Group] *************************************************************************************************************************************************************************
-
-TASK [Create Instance Group] *****************************************************************************************************************************************************************************
-fatal: [en1.zwietz.nl -> localhost]: FAILED! => {"changed": false, "msg": "Failed to get token: <urlopen error [Errno 111] Connection refused>"}
-
-PLAY RECAP ***********************************************************************************************************************************************************************************************
-en1.zwietz.nl              : ok=0    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0   
-
+all:
+  hosts:
+    en1.zwietz.nl:
+        instance_group_name: test
+        ansible_port: 2222
